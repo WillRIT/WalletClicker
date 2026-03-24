@@ -5,6 +5,7 @@ using TMPro;
 public class GameManager : MonoBehaviour
 {
     public float money = 0.0f;
+    private float upgradeCost = 1.0f;
     [SerializeField] public Wallet wallet;
     public TMP_Text moneyText;
 
@@ -24,7 +25,8 @@ public class GameManager : MonoBehaviour
     {
         if (money > 0)
         {
-            money--;
+            money -= upgradeCost;
+            upgradeCost++;
             wallet.walletValue++;
             Debug.Log("added click value. current value: " + wallet.walletValue);
             Debug.Log("current money: " + money);
