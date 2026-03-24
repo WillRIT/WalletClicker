@@ -70,6 +70,7 @@ public class Wallet : MonoBehaviour
         {
             Debug.Log("Wallet clicked! Value: " + walletValue);
             gameManager.GetComponent<GameManager>().money += walletValue;
+            Debug.Log("Current Money: " + gameManager.GetComponent<GameManager>().money);
         }
         else if (debugClicks)
         {
