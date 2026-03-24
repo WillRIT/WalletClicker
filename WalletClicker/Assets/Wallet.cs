@@ -9,10 +9,16 @@ public class Wallet : MonoBehaviour
 
     public float walletValue = 1.0f;
     public GameObject gameManager;
+    [SerializeField] private bool debugClicks = true;
     private void Awake()
     {
         walletCollider3D = GetComponent<Collider>();
         walletCollider2D = GetComponent<Collider2D>();
+
+        if (debugClicks)
+        {
+            Debug.Log($"Wallet ready on '{name}'. 2D collider: {walletCollider2D != null}, 3D collider: {walletCollider3D != null}");
+        }
 
         if (walletCollider3D == null && walletCollider2D == null)
         {
@@ -25,6 +31,11 @@ public class Wallet : MonoBehaviour
         if (!TryGetPointerDownPosition(out Vector2 screenPosition))
         {
             return;
+        }
+
+        if (debugClicks)
+        {
+            Debug.Log($"Pointer down at screen position {screenPosition}");
         }
 
         Camera cameraToUse = Camera.main;
@@ -46,9 +57,10 @@ public class Wallet : MonoBehaviour
 
         if (!clickedWallet && walletCollider2D != null)
         {
-            Vector2 worldPoint = cameraToUse.ScreenToWorldPoint(screenPosition);
-            RaycastHit2D hit2D = Physics2D.Raycast(worldPoint, Vector2.zero);
-            if (hit2D.collider != null && hit2D.collider == walletCollider2D)
+            float depthToWallet = Mathf.Abs(transform.position.z - cameraToUse.transform.position.z);
+            Vector3 worldPoint3 = cameraToUse.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y, depthToWallet));
+            Vector2 worldPoint = new Vector2(worldPoint3.x, worldPoint3.y);
+            if (walletCollider2D.OverlapPoint(worldPoint))
             {
                 clickedWallet = true;
             }
@@ -58,12 +70,21 @@ public class Wallet : MonoBehaviour
         {
             Debug.Log("Wallet clicked! Value: " + walletValue);
             gameManager.GetComponent<GameManager>().money += walletValue;
-
+        }
+        else if (debugClicks)
+        {
+            Debug.Log("Pointer detected, but wallet collider was not hit.");
         }
     }
 
     private bool TryGetPointerDownPosition(out Vector2 screenPosition)
     {
+        if (Pointer.current != null && Pointer.current.press.wasPressedThisFrame)
+        {
+            screenPosition = Pointer.current.position.ReadValue();
+            return true;
+        }
+
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
             screenPosition = Mouse.current.position.ReadValue();
@@ -75,6 +96,14 @@ public class Wallet : MonoBehaviour
             screenPosition = Touchscreen.current.primaryTouch.position.ReadValue();
             return true;
         }
+
+#if ENABLE_LEGACY_INPUT_MANAGER
+        if (Input.GetMouseButtonDown(0))
+        {
+            screenPosition = Input.mousePosition;
+            return true;
+        }
+#endif
 
         screenPosition = default;
         return false;
