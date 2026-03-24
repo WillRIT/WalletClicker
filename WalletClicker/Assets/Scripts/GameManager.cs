@@ -5,7 +5,7 @@ using TMPro;
 public class GameManager : MonoBehaviour
 {
     public float money = 0.0f;
-    private float upgradeCost = 1.0f;
+    public float upgradeCost = 1.0f;
     [SerializeField] public Wallet wallet;
     public TMP_Text moneyText;
 
